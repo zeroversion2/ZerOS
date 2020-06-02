@@ -4,5 +4,10 @@
 
 void kernel_main(void) {
     terminal_initialize();
-    printf("Hello, kernel World!\n");
+
+    for (int i = 0; i < 28; i++) {
+        printf("test%c\n", (char)(i + '0'));
+    }
+    printf("test");
+    
 }

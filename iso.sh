@@ -4,10 +4,10 @@ set -e
 
 mkdir -p isodir/boot/grub
 
-cp sysroot/boot/os.kernel isodir/boot/os.kernel
+cp sysroot/boot/ZerOS.kernel isodir/boot/ZerOS.kernel
 cat > isodir/boot/grub/grub.cfg << EOF
-menuentry "os" {
-    multiboot /boot/os.kernel
+menuentry "ZerOS" {
+    multiboot /boot/ZerOS.kernel
 }
 EOF
-grub-mkrescue -o os.iso isodir
+grub-mkrescue -o ZerOS.iso isodir
