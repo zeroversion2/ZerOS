@@ -2,7 +2,7 @@ DEFAUlT_HOST!=../default-host.sh
 HOST?=DEFAULT_HOST
 HOSTARCH!=../target-triplet-to-arch.sh $(HOST)
 
-CFLAGS?=-O2 -g
+CFLAGS?=-O2 -g -masm=intel
 CPPFLAGS?=
 LDFLAGS?=
 LIBS?=
@@ -29,6 +29,7 @@ LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
  
 KERNEL_OBJS=\
 $(KERNEL_ARCH_OBJS) \
+kernel/v86.o \
 kernel/kernel.o \
 			  
 OBJS=\
