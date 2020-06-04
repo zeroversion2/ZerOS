@@ -1,7 +1,4 @@
 #!/bin/sh
-set -e
-. ./build.sh
-
 mkdir -p isodir/boot/grub
 
 cp sysroot/boot/ZerOS.kernel isodir/boot/ZerOS.kernel

@@ -1,5 +1,3 @@
-PATH:=$(HOME)/opt/cross/bin:$(PATH)
-
 PREFIX:=/usr
 EXEC_PREFIX:=$(PREFIX)
 BOOTDIR:=/boot
@@ -8,20 +6,20 @@ INCLUDEDIR:=$(PREFIX)/include
 
 SYSROOT:=$(PWD)/sysroot
 
-DEFAULT_HOST!=i686-elf
+DEFAULT_HOST:=i686-elf
 HOST:=$(DEFAULT_HOST)
-HOSTARCH!=./target-triplet-to-arch.sh $(HOST)
+HOSTARCH:=i386
 
-AR:=$(HOST)-ar
-AS:=$(HOST)-as
-CC:=$(HOST)-gcc
+COMPILER_PREFIX:=$(HOME)/opt/cross/bin/$(HOST)
+
+AR:=$(COMPILER_PREFIX)-ar
+AS:=$(COMPILER_PREFIX)-as
+CC:=$(COMPILER_PREFIX)-gcc
 
 CFLAGS?=-O2 -g
 CPPFLAGS?=
 LDFLAGS?=
 LIBS?=
-
-$(info $(SYSROOT))
 
 DESTDIR?=$(SYSROOT)
 PREFIX?=/usr/local
@@ -29,10 +27,10 @@ EXEC_PREFIX?=$(PREFIX)
 BOOTDIR?=$(EXEC_PREFIX)/boot
 INCLUDEDIR?=$(PREFIX)/include
 
-CFLAGS:=$(CFLAGS) --sysroot=$(SYSROOT) -isystem=$(INCLUDEDIR) -ffreestanding -Wall -Wextra
-CPPFLAGS:=$(CPPFLAGS) -D__is_kernel -Iinclude
-LDFLAGS:=$(LDFLAGS)
-LIBS:=$(LIBS) -nostdlib -lgcc
+CFLAGS+=--sysroot=$(SYSROOT) -isystem=$(INCLUDEDIR) -ffreestanding -Wall -Wextra
+CPPFLAGS+=-D__is_kernel -Iinclude
+LDFLAGS+=
+LIBS+=-nostdlib -lgcc
 
 ARCHDIR=arch/$(HOSTARCH)
 
@@ -47,7 +45,7 @@ LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
 KERNEL_OBJS=\
 $(KERNEL_ARCH_OBJS) \
 kernel/v86.o \
-kernel/kernel.o \
+kernel/kernel.o
 			  
 OBJS=\
 $(ARCHDIR)/crti.o \
@@ -55,9 +53,7 @@ $(ARCHDIR)/crtbegin.o \
 $(FREEOBJS) \
 $(KERNEL_OBJS) \
 $(ARCHDIR)/crtend.o \
-$(ARCHDIR)/crtn.o \
-
-$(info $(FREEOBJS))
+$(ARCHDIR)/crtn.o
 	   
 LINK_LIST=\
 $(LDFLAGS) \
@@ -67,7 +63,7 @@ $(KERNEL_OBJS) \
 $(FREEOBJS) \
 $(LIBS) \
 $(ARCHDIR)/crtend.o \
-$(ARCHDIR)/crtn.o \
+$(ARCHDIR)/crtn.o
 
 .PHONY: all clean install install-headers install-kernel
 .SUFFIXES: .o .c .S
