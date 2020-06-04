@@ -1,23 +1,21 @@
-#include <kernel/asm.h>
+[BITS 16]
 
 //multiboot header constants
-.set ALIGN,     1<<0
+ALIGN 1<<0
 .set MEMINFO,   1<<1
 //.set 
 .set FLAGS,     ALIGN | MEMINFO
 .set MAGIC,     0x1BADB002
 .set CHECKSUM,  -(MAGIC + FLAGS)
-//.set gdtr, 0
+
+.set PAGE_OFFSET, 0xC0000000
 
 //multiboot header
-.section .multiboot
-.align 4
-.long MAGIC
+section .multiboot
+align 4
+MAGIC 
 .long FLAGS
 .long CHECKSUM
-
-//.section .text
-//.long gdtr
 
 //setup stack
 .section .bootstrap_stack, "aw", @nobits
@@ -51,6 +49,7 @@ gdt_flush:
 .global _start
 .type _start, @function
 _start:
+    movl $0, %eax
 
     //physical address of boot_page_table1
     movl $(boot_page_table1 - PAGE_OFFSET), %edi
