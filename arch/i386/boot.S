@@ -1,137 +1,117 @@
 [BITS 16]
 
-//multiboot header constants
-ALIGN 1<<0
-.set MEMINFO,   1<<1
-//.set 
-.set FLAGS,     ALIGN | MEMINFO
-.set MAGIC,     0x1BADB002
-.set CHECKSUM,  -(MAGIC + FLAGS)
+PAGE_OFFSET equ 0xC0000000
+extern kernel_main
+extern _kernel_start
+extern _kernel_end
 
-.set PAGE_OFFSET, 0xC0000000
-
-//multiboot header
+;multiboot header
 section .multiboot
-align 4
-MAGIC 
-.long FLAGS
-.long CHECKSUM
+MAGIC dd 0x1BADB002
+FLAGS dd 11b
+CHECKSUM dd 0x100000000-(0x1BADB002 + 11b)
 
-//setup stack
-.section .bootstrap_stack, "aw", @nobits
+;setup stack
+section .bootstrap_stack alloc write nobits
 stack_bottom:
-.skip 16384
+    times 2048 db 0
 stack_top:
 
-.section .bss, "aw", @nobits
-    .align 4096
+section .bss alloc write nobits
+    align 4096
 boot_page_directory:
-    .skip 4096
+    times 512 db 0
 boot_page_table1:
-    .skip 4096
+    times 512 db 0
 
-//entry point
-.section .text
-
-.global gdt_flush
-.extern gp
-gdt_flush:
-    lgdt (gp)
-    movw $0x10,%ax
-    movw %ax,%ds
-    movw %ax,%es
-    movw %ax,%fs
-    movw %ax,%gs
-    movw %ax,%ss
-    ret
-
-
-.global _start
-.type _start, @function
+;entry point
+section .text
+global _start
 _start:
-    movl $0, %eax
 
-    //physical address of boot_page_table1
-    movl $(boot_page_table1 - PAGE_OFFSET), %edi
-    //map address 0
-    movl $0, %esi
-    movl $1023, %ecx
+    ;//physical address of boot_page_table1
+    mov edi, (boot_page_table1 - PAGE_OFFSET)
+    ;//map address 0
+    mov esi, 0
+    mov ecx, 1023
 
-1:
-    //only map the kernel
-    cmpl $(_kernel_start - PAGE_OFFSET), %esi
-    jl 2f
-    cmpl $(_kernel_end - PAGE_OFFSET), %esi
-    jge 3f
+one:
+    ;//only map the kernel
+    cmp esi, (_kernel_start - PAGE_OFFSET)
+    jl two
+    cmp esi, (_kernel_end - PAGE_OFFSET)
+    jge three
 
-    //map physical address "present, writable"
-    //maps .text and .rodata writable as well
-    movl %esi, %edx
-    orl $0x003, %edx
-    movl %edx, (%edi)
+    ;//map physical address "present, writable"
+    ;//maps .text and .rodata writable as well
+    mov edx, esi
+    or edx, 0x003
+    mov [edi], edx
 
-2:
-    //size of page
-    addl $4096, %esi
-    //size of entries in boot_page_table1 is 4 bytes
-    addl $4, %edi
-    loop 1b
+two:
+    ;//size of page
+    add esi, 4096
+    ;//size of entries in boot_page_table1 is 4 bytes
+    add edi, 4
+    loop one
 
-3:
-    //map vga video memory to 0xC03FF000 as "present, writable"
-    movl $(0x000B8000 | 0x003), boot_page_table1 - PAGE_OFFSET + 1023 * 4
+three:
+    ;//map vga video memory to 0xC03FF000 as "present, writable"
+    mov boot_page_table1 - PAGE_OFFSET + 1023 * 4, [0x000B8000 | 0x003]
 
-    //map the page table to 0x00000000 and 0xC0000000
-    movl $(boot_page_table1 - PAGE_OFFSET + 0x003), boot_page_directory - PAGE_OFFSET + 0
-    movl $(boot_page_table1 - PAGE_OFFSET + 0x003), boot_page_directory - PAGE_OFFSET + 768 * 4
+    ;//map the page table to 0x00000000 and 0xC0000000
+    mov boot_page_directory - PAGE_OFFSET + 0, (boot_page_table1 - PAGE_OFFSET + 0x003)
+    mov boot_page_directory - PAGE_OFFSET + 768 * 4, (boot_page_table1 - PAGE_OFFSET + 0x003)
 
-    //set cr3 as address of boot_page_directory
-    movl $(boot_page_directory - PAGE_OFFSET), %ecx
-    movl %ecx, %cr3
+    ;//set cr3 as address of boot_page_directory
+    mov ecx, (boot_page_directory - PAGE_OFFSET)
+    mov cr3, ecx
     
-    //enable paging and the write-protect bit
-    movl %cr0, %ecx
-    orl $0x80010000, %ecx
-    movl %ecx, %cr0
+    ;//enable paging and the write-protect bit
+    mov ecx, cr0
+    or ecx, 0x80010000
+    mov cr0, ecx
 
-    //jump to higher half
-    lea 4f, %ecx
-    jmp *%ecx
+    ;//jump to higher half
+    lea ecx, four
+    jmp far ecx
 
-4:
-    //unmap identity mapping
-    movl $0, boot_page_directory + 0
+four:
+    ;//unmap identity mapping
+    mov boot_page_directory + 0, 0
 
-    //reload cr0 to force a TLB flush and changes take effect
-    movl %cr3, %ecx
-    movl %ecx, %cr3
+    ;//reload cr0 to force a TLB flush and changes take effect
+    mov ecx, cr3
+    mov cr3, ecx
 
-    //set up stack
-    mov $stack_top, %esp
+    ;//set up stack
+    mov esp, stack_top
 
-    //hlt
+;     //hlt
 
-    //gdt??????
-    // movl 4(%esp), %eax
-    // addl $0xc0101000, %eax
-    // movl %eax, gdt+2
-    // movl 8(%esp), %eax
-    // movw %ax, gdt
-    // lgdtw gdt
+;     //gdt??????
+;     // movl 4(%esp), %eax
+;     // addl $0xc0101000, %eax
+;     // movl %eax, gdt+2
+;     // movl 8(%esp), %eax
+;     // movw %ax, gdt
+;     // lgdtw gdt
 
-    // hlt
+;     // hlt
 
-    // movw $0x10, %ax
-    // movw %ax, %ds
-    // movw %ax, %es
-    // movw %ax, %fs
-    // movw %ax, %gs
-    // movw %ax, %ss
-    
+;     // movw $0x10, %ax
+;     // movw %ax, %ds
+;     // movw %ax, %es
+;     // movw %ax, %fs
+;     // movw %ax, %gs
+;     // movw %ax, %ss
+    mov eax, 1
     call kernel_main
+    mov eax, 0
 
     cli
-1:  hlt
-    jmp 1b
-
-.size _start, . - _start
+    q:
+    hlt
+    jmp q
+_end:
+size _start _end-_start

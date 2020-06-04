@@ -7,3 +7,4 @@ KERNEL_ARCH_OBJS=\
 $(ARCHDIR)/boot.o \
 $(ARCHDIR)/tty.o \
 $(ARCHDIR)/gdt.o \
+$(ARCHDIR)/gdt_flush.o \
