@@ -19,9 +19,5 @@ void kernel_main(void) {
     gdt_install();
 
     terminal_initialize();
-    printf("test\ntest again\n test another time");
-
-    // for (int i = 0; i < 28; i++) {
-    //     printf("test%c\n", (char)(i + '0'));
-    // }
+    printf("helo");
 }
