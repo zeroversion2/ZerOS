@@ -75,12 +75,13 @@ ZerOS.kernel: $(OBJS) $(ARCHDIR)/linker.ld
 	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
 
 .S.o:
-	$(AS) $< -o $@
+	$(AS) $< -o $@ -l $@.l
 
 clean:
 	rm -f ZerOS.kernel
 	rm -f $(OBJS) *.o */*.o */*/*.o
 	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
+	rm -f $(OBJS:.o=.o.l) *.d */*.d */*/*.d
 
 install: install-headers install-kernel
 

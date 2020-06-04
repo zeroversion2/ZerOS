@@ -1,4 +1,4 @@
-[BITS 16]
+[BITS 32]
 
 PAGE_OFFSET equ 0xC0000000
 extern kernel_main
@@ -6,32 +6,35 @@ extern _kernel_start
 extern _kernel_end
 
 ;multiboot header
-section .multiboot
+multiboot:
 MAGIC dd 0x1BADB002
 FLAGS dd 11b
 CHECKSUM dd 0x100000000-(0x1BADB002 + 11b)
 
 ;setup stack
-section .bootstrap_stack alloc write nobits
-stack_bottom:
-    times 2048 db 0
-stack_top:
 
 section .bss alloc write nobits
-    align 4096
+stack_bottom:
+    resb 16384
+stack_top:
+align 4096
 boot_page_directory:
-    times 512 db 0
+    resb 4096
 boot_page_table1:
-    times 512 db 0
+    resb 4096
 
 ;entry point
 section .text
 global _start
 _start:
 
+    mov word [0xb8000], 0x0248
+    ;hlt
+
     ;//physical address of boot_page_table1
     mov edi, (boot_page_table1 - PAGE_OFFSET)
     ;//map address 0
+    ;hlt
     mov esi, 0
     mov ecx, 1023
 
@@ -56,12 +59,16 @@ two:
     loop one
 
 three:
+    ;hlt
     ;//map vga video memory to 0xC03FF000 as "present, writable"
-    mov boot_page_table1 - PAGE_OFFSET + 1023 * 4, [0x000B8000 | 0x003]
+    mov eax, 0x000B8000 | 0x003
+    mov [boot_page_table1 - PAGE_OFFSET + 1023 * 4], eax
 
     ;//map the page table to 0x00000000 and 0xC0000000
-    mov boot_page_directory - PAGE_OFFSET + 0, (boot_page_table1 - PAGE_OFFSET + 0x003)
-    mov boot_page_directory - PAGE_OFFSET + 768 * 4, (boot_page_table1 - PAGE_OFFSET + 0x003)
+    mov eax, boot_page_table1 - PAGE_OFFSET + 0x003
+    mov [boot_page_directory - PAGE_OFFSET + 0], eax
+    mov eax, (boot_page_table1 - PAGE_OFFSET + 0x003)
+    mov [boot_page_directory - PAGE_OFFSET + 768 * 4], eax
 
     ;//set cr3 as address of boot_page_directory
     mov ecx, (boot_page_directory - PAGE_OFFSET)
@@ -71,14 +78,17 @@ three:
     mov ecx, cr0
     or ecx, 0x80010000
     mov cr0, ecx
+    ;hlt
 
     ;//jump to higher half
-    lea ecx, four
-    jmp far ecx
+    jmp far [four]
 
 four:
+    hlt
     ;//unmap identity mapping
-    mov boot_page_directory + 0, 0
+    mov eax, 0x0
+    mov [boot_page_directory + 0], eax
+    hlt
 
     ;//reload cr0 to force a TLB flush and changes take effect
     mov ecx, cr3
@@ -106,6 +116,7 @@ four:
 ;     // movw %ax, %gs
 ;     // movw %ax, %ss
     mov eax, 1
+    ;hlt
     call kernel_main
     mov eax, 0
 

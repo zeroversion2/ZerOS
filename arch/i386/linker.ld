@@ -5,7 +5,6 @@ SECTIONS {
 
     _kernel_start = .;
     .text ALIGN(4K) : AT (ADDR (.text) - 0xC0000000){
-        *(.multiboot)
         *(.text)
     }
 
@@ -20,7 +19,6 @@ SECTIONS {
     .bss ALIGN(4K) : AT (ADDR (.bss) - 0xC0000000) {
         *(COMMON)
         *(.bss)
-        *(.bootstrap_stack)
     }
     _kernel_end = .;
 }
