@@ -1,0 +1,7 @@
+#ifndef _KERNEL_ASM_H
+#define _KERNEL_ASM_H
+
+#define PAGE_OFFSET 0xC0000000
+#define VGA_OFFSET 0xC0347000
+
+#endif

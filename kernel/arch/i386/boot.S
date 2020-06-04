@@ -1,9 +1,13 @@
+#include <kernel/asm.h>
+
 //multiboot header constants
 .set ALIGN,     1<<0
 .set MEMINFO,   1<<1
+//.set 
 .set FLAGS,     ALIGN | MEMINFO
 .set MAGIC,     0x1BADB002
 .set CHECKSUM,  -(MAGIC + FLAGS)
+//.set gdtr, 0
 
 //multiboot header
 .section .multiboot
@@ -11,6 +15,9 @@
 .long MAGIC
 .long FLAGS
 .long CHECKSUM
+
+//.section .text
+//.long gdtr
 
 //setup stack
 .section .bootstrap_stack, "aw", @nobits
@@ -27,20 +34,35 @@ boot_page_table1:
 
 //entry point
 .section .text
+
+.global gdt_flush
+.extern gp
+gdt_flush:
+    lgdt (gp)
+    movw $0x10,%ax
+    movw %ax,%ds
+    movw %ax,%es
+    movw %ax,%fs
+    movw %ax,%gs
+    movw %ax,%ss
+    ret
+
+
 .global _start
 .type _start, @function
 _start:
+
     //physical address of boot_page_table1
-    movl $(boot_page_table1 - 0xC0000000), %edi
+    movl $(boot_page_table1 - PAGE_OFFSET), %edi
     //map address 0
     movl $0, %esi
     movl $1023, %ecx
 
 1:
     //only map the kernel
-    cmpl $(_kernel_start - 0xC0000000), %esi
+    cmpl $(_kernel_start - PAGE_OFFSET), %esi
     jl 2f
-    cmpl $(_kernel_end - 0xC0000000), %esi
+    cmpl $(_kernel_end - PAGE_OFFSET), %esi
     jge 3f
 
     //map physical address "present, writable"
@@ -58,14 +80,14 @@ _start:
 
 3:
     //map vga video memory to 0xC03FF000 as "present, writable"
-    movl $(0x000B8000 | 0x003), boot_page_table1 - 0xC0000000 + 1023 * 4
+    movl $(0x000B8000 | 0x003), boot_page_table1 - PAGE_OFFSET + 1023 * 4
 
     //map the page table to 0x00000000 and 0xC0000000
-    movl $(boot_page_table1 - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 0
-    movl $(boot_page_table1 - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 768 * 4
+    movl $(boot_page_table1 - PAGE_OFFSET + 0x003), boot_page_directory - PAGE_OFFSET + 0
+    movl $(boot_page_table1 - PAGE_OFFSET + 0x003), boot_page_directory - PAGE_OFFSET + 768 * 4
 
     //set cr3 as address of boot_page_directory
-    movl $(boot_page_directory - 0xC0000000), %ecx
+    movl $(boot_page_directory - PAGE_OFFSET), %ecx
     movl %ecx, %cr3
     
     //enable paging and the write-protect bit
@@ -87,6 +109,25 @@ _start:
 
     //set up stack
     mov $stack_top, %esp
+
+    //hlt
+
+    //gdt??????
+    // movl 4(%esp), %eax
+    // addl $0xc0101000, %eax
+    // movl %eax, gdt+2
+    // movl 8(%esp), %eax
+    // movw %ax, gdt
+    // lgdtw gdt
+
+    // hlt
+
+    // movw $0x10, %ax
+    // movw %ax, %ds
+    // movw %ax, %es
+    // movw %ax, %fs
+    // movw %ax, %gs
+    // movw %ax, %ss
     
     call kernel_main
 
