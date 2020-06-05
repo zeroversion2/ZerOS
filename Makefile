@@ -15,8 +15,8 @@ COMPILER_PREFIX:=$(HOME)/opt/cross/bin/$(HOST)
 AR:=$(COMPILER_PREFIX)-ar
 AS:=yasm -Worphan-labels -f elf32
 #AS:=$(COMPILER_PREFIX)-gcc
-#CC:=clang --target=i686-elf
-CC:=$(COMPILER_PREFIX)-gcc
+CC:=clang --target=i686-elf
+#CC:=$(COMPILER_PREFIX)-gcc
 
 CFLAGS?=-O2 -g
 CPPFLAGS?=

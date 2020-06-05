@@ -1,15 +1,15 @@
 [BITS 32]
 
+
+section .data
 PAGE_OFFSET equ 0xC0000000
+MAGIC equ 0x1BADB002
+FLAGS equ 11b
+CHECKSUM equ -(MAGIC + FLAGS)
+
 extern kernel_main
 extern _kernel_start
 extern _kernel_end
-
-;multiboot header
-multiboot:
-MAGIC dd 0x1BADB002
-FLAGS dd 11b
-CHECKSUM dd 0x100000000-(0x1BADB002 + 11b)
 
 ;setup stack
 
@@ -25,10 +25,15 @@ boot_page_table1:
 
 ;entry point
 section .text
+multiboot:
+dd MAGIC
+dd FLAGS
+dd CHECKSUM
 global _start
 _start:
 
-    mov word [0xb8000], 0x0248
+    ;mov word [0xb8000], 0x0248
+    mov eax, boot_page_directory
     ;hlt
 
     ;//physical address of boot_page_table1
@@ -74,6 +79,7 @@ three:
     mov ecx, (boot_page_directory - PAGE_OFFSET)
     mov cr3, ecx
     
+    hlt
     ;//enable paging and the write-protect bit
     mov ecx, cr0
     or ecx, 0x80010000
