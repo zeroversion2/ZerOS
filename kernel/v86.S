@@ -1,4 +1,4 @@
-
+global entering_v86
 entering_v86:
     mov ebp, esp
     push dword [ebp+4]

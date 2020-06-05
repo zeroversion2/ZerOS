@@ -75,7 +75,7 @@ ZerOS.kernel: $(OBJS) $(ARCHDIR)/linker.ld
 	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
 
 .S.o:
-	$(AS) $< -o $@ -l $@.l
+	$(AS) $< -o $@
 
 clean:
 	rm -f ZerOS.kernel
