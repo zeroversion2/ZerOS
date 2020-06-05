@@ -8,3 +8,4 @@ $(ARCHDIR)/boot.o \
 $(ARCHDIR)/tty.o \
 $(ARCHDIR)/gdt.o \
 $(ARCHDIR)/gdt_flush.o \
+$(ARCHDIR)/paging.o \
