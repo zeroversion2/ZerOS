@@ -87,6 +87,7 @@ clean:
 	rm -f ZerOS.kernel
 	rm -f $(OBJS) *.o */*.o */*/*.o
 	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
+	rm -f $(OBJS:.o=.o.cmd) *.cmd */*.cmd */*/*.cmd
 
 install: install-headers install-kernel
 
