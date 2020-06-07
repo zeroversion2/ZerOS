@@ -1,8 +1,8 @@
 section .text
-extern gp
+extern gdtr
 global gdt_flush
 gdt_flush:
-    lgdt [gp]
+    lgdt [gdtr]
     mov ax, 0x10
     mov ds, ax
     mov es, ax

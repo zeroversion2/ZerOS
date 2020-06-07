@@ -4,6 +4,8 @@
 
 #include <kernel/paging.h>
 
+uint32_t page_directory[1024] __attribute__((aligned(4096)));
+
 uint32_t page_directory_entry(
     void* page_table_address,
     enum page_size_t page_size,

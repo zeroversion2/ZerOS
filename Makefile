@@ -72,7 +72,7 @@ ZerOS.kernel: $(OBJS) $(ARCHDIR)/linker.ld
 # 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
 
 .c.o:
-	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
+	$(CC) -MD -MF $@.cmd -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
 
 .S.o:
 	$(AS) $< -o $@
@@ -81,7 +81,8 @@ clean:
 	rm -f ZerOS.kernel
 	rm -f $(OBJS) *.o */*.o */*/*.o
 	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
-	rm -f $(OBJS:.o=.o.l) *.d */*.d */*/*.d
+	rm -f $(OBJS:.o=.cmd) *.cmd */*.cmd */*/*.cmd
+	rm -f $(OBJS:.o=.o.l) *.l */*.l */*/*.l
 
 install: install-headers install-kernel
 
@@ -94,4 +95,4 @@ install-kernel: ZerOS.kernel
 	mkdir -p $(DESTDIR)$(BOOTDIR)
 	cp ZerOS.kernel $(DESTDIR)$(BOOTDIR)
 
--include $(OBJS:.o=.d)
+-include $(OBJS:.o=.cmd)
