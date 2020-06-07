@@ -24,7 +24,7 @@ boot_page_directory:
 boot_page_table:
     resb 4096
 
-section .bss
+section .bss alloc write nobits
 align 4
 stack_bottom:
     resb 16384
@@ -40,33 +40,34 @@ dd CHECKSUM
 global _start
 _start:
 
-;     ;//set cr3 as address of boot_page_directory
-;     mov ecx, boot_page_directory_p
-;     mov cr3, ecx
+    ;//set cr3 as address of boot_page_directory
+    mov ecx, boot_page_directory_p
+    mov cr3, ecx
 
-;     mov ecx, cr4
-;     or ecx, 0x10
-;     mov cr4, ecx
+    mov ecx, cr4
+    or ecx, 0x10
+    mov cr4, ecx
     
-;     ;hlt
-;     ;//enable paging and the write-protect bit
-;     mov ecx, cr0
-;     or ecx, 0x80010000
-;     mov cr0, ecx
-;     hlt
+    ;hlt
+    ;//enable paging and the write-protect bit
+    mov ecx, cr0
+    or ecx, 0x80010000
+    mov cr0, ecx
+    ;hlt
 
-;     ;//jump to higher half
-;     lea ecx, [higher_half]
-;     jmp ecx
+    ;//jump to higher half
+    lea ecx, [higher_half]
+    jmp ecx
 
-; higher_half:
-;     ;//unmap identity mapping
-;     mov dword [boot_page_directory], 0
-;     invlpg [0]
+higher_half:
+    ;//unmap identity mapping
+    mov dword [boot_page_directory], 0
+    invlpg [0]
+    ;hlt
 
-;     ;//set up stack
-;     mov esp, stack_top
-;     ;hlt
+    ;//set up stack
+    mov esp, stack_top
+    ;hlt
 
     call kernel_main
 
