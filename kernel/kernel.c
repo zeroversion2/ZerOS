@@ -6,5 +6,5 @@
 
 void kernel_main(void) {
     setup_i386();
-    //printf("heloellohellohelloyesyesyesyesyesyesmhmhmhmhmhmhmhhmhmindeedindeedindeedyesyesyes");
+    printf("heloellohellohelloyesyesyesyesyesyesmhmhmhmhmhmhmhhmhmindeedindeedindeedyesyesyes");
 }

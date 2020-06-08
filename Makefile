@@ -63,7 +63,7 @@ $(LIBS) \
 all: install-headers ZerOS.kernel
 
 ZerOS.kernel: $(OBJS) $(ARCHDIR)/linker.ld
-	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(LDFLAGS) $(LINK_LIST)
+	$(CC) -T $(ARCHDIR)/linker_higher.ld -o $@ $(CFLAGS) $(LDFLAGS) $(LINK_LIST)
 	grub-file --is-x86-multiboot ZerOS.kernel
 
 # $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:

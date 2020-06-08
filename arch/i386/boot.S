@@ -6,23 +6,21 @@ CHECKSUM equ -(MAGIC + FLAGS)
 PAGE_OFFSET equ 0xC0000000
 PAGE_NUMBER equ (PAGE_OFFSET >> 22)
 
-boot_page_directory_p equ boot_page_directory - PAGE_OFFSET
-boot_page_table_p equ boot_page_table - PAGE_OFFSET
-boot_page_table_pf equ boot_page_table - PAGE_OFFSET
+page_directory_p equ page_directory - PAGE_OFFSET
+page_table1_p equ page_table1 - PAGE_OFFSET
 
 extern kernel_main
 extern _kernel_start
 extern _kernel_end
+extern setup_paging
 
 section .data
 align 0x1000
-global boot_page_directory
-boot_page_directory:
-    dd 0x00000083
-    times (PAGE_NUMBER - 1) dd 0
-    dd 0x00000083
-    times (1024 - PAGE_NUMBER - 1) dd 0
-boot_page_table:
+global page_directory
+page_directory:
+    resb 4096
+global page_table1
+page_table1:
     resb 4096
 
 section .bss alloc write nobits
@@ -40,34 +38,66 @@ dd FLAGS
 dd CHECKSUM
 global _start
 _start:
+    ;mov eax, page_directory
 
-;     ;//set cr3 as address of boot_page_directory
-;     mov ecx, boot_page_directory_p
-;     mov cr3, ecx
+    xor edx, edx
+    mov eax, _kernel_end - PAGE_OFFSET
+    mov ebx, 4096
+    div ebx
+    mov ecx, eax
+    ;inc ecx
+    ;hlt
+    mul ebx
+    ;hlt
+    fill_table:
+    mov eax, ecx
+    ;dec eax
+    mul ebx
+    ;hlt
+    or eax, 0x3
+    mov dword [page_table1_p + ecx * 4], eax
+    ;hlt
+    loop fill_table
 
-;     mov ecx, cr4
-;     or ecx, 0x10
-;     mov cr4, ecx
+    mov eax, ecx
+    mul ebx
+    ;hlt
+    or eax, 0x3
+    mov dword [page_table1_p + ecx * 4], eax
+    mov eax, dword [page_table1_p]
+    ;hlt
+
+    mov eax, page_table1_p
+    or eax, 0x3
+    mov dword [page_directory_p], eax
+    mov dword [page_directory_p + 768 * 4], eax
+    ;hlt
+
+    ;set cr3 as address of boot_page_directory
+    mov ecx, page_directory_p
+    ;hlt
+    mov cr3, ecx
     
-;     ;hlt
-;     ;//enable paging and the write-protect bit
-;     mov ecx, cr0
-;     or ecx, 0x80010000
-;     mov cr0, ecx
-;     ;hlt
+    ;hlt
+    ;//enable paging and the write-protect bit
+    mov ecx, cr0
+    or ecx, 0x80000000
+    ;hlt
+    mov cr0, ecx
+    ;quihlt
 
-;     ;//jump to higher half
-;     lea ecx, [higher_half]
-;     jmp ecx
+    ;//jump to higher half
+    lea ecx, [higher_half]
+    jmp ecx
 
-; higher_half:
-;     ;//unmap identity mapping
-;     mov dword [boot_page_directory], 0
-;     invlpg [0]
-;     ;hlt
+higher_half:
+    ;//unmap identity mapping
+    mov dword [page_directory], 0
+    invlpg [0]
+    ;hlt
 
-    mov eax, boot_page_directory
-    hlt
+    ;mov eax, boot_page_directory
+    ;hlt
 
     ;//set up stack
     mov esp, stack_top

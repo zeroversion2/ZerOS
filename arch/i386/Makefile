@@ -12,4 +12,5 @@ $(ARCHDIR)/paging.o \
 $(ARCHDIR)/ports.o \
 $(ARCHDIR)/setup.o \
 $(ARCHDIR)/v86.o \
-$(ARCHDIR)/debug.o
+$(ARCHDIR)/debug.o \
+$(ARCHDIR)/paging_asm.o
