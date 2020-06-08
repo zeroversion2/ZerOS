@@ -39,10 +39,10 @@ ARCHDIR=arch/$(HOSTARCH)
 include $(ARCHDIR)/Makefile
 include ./lib/Makefile
 
-CFLAGS:=$(CFLAGS) $(KERNEL_ARCH_CFLAGS)
-CPPFLAGS:=$(CPPFLAGS) $(KERNEL_ARCH_CPPFLAGS)
-LDFLAGS:=$(LDFLAGS) $(KERNEL_ARCH_LDFLAGS)
-LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
+CFLAGS+=$(KERNEL_ARCH_CFLAGS)
+CPPFLAGS+=$(KERNEL_ARCH_CPPFLAGS)
+LDFLAGS+=$(KERNEL_ARCH_LDFLAGS)
+LIBS+=$(KERNEL_ARCH_LIBS)
  
 KERNEL_OBJS=\
 $(KERNEL_ARCH_OBJS) \
@@ -54,7 +54,6 @@ $(FREEOBJS) \
 $(KERNEL_OBJS) \
 	   
 LINK_LIST=\
-$(LDFLAGS) \
 $(KERNEL_OBJS) \
 $(FREEOBJS) \
 $(LIBS) \
@@ -65,7 +64,7 @@ $(LIBS) \
 all: install-headers ZerOS.kernel
 
 ZerOS.kernel: $(OBJS) $(ARCHDIR)/linker.ld
-	$(CC) -T $(ARCHDIR)/linker_higher.ld -o $@ $(CFLAGS) $(LINK_LIST)
+	$(CC) -T $(ARCHDIR)/linker_higher.ld -o $@ $(CFLAGS) $(LDFLAGS) $(LINK_LIST)
 	grub-file --is-x86-multiboot ZerOS.kernel
 
 # $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:

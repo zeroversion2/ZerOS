@@ -1,8 +1,11 @@
+#include <stdint.h>
+
 #ifndef _KERNEL_SYSTEM_H
 #define _KERNEL_SYSTEM_H
 
-void gdt_install();
-unsigned char inportb(unsigned short _port);
-void outportb (unsigned short _port, unsigned char _data);
+void setup_gdt();
+void setup_i386();
+uint8_t inportb(uint16_t _port);
+void outportb(uint16_t _port, uint8_t _data);
 
 #endif

@@ -31,7 +31,7 @@ void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned cha
     gdt[num].access = access;
 }
 
-void gdt_install() {
+void setup_gdt() {
     gdtr.limit = (sizeof(struct gdt_entry) * 3) - 1;
     gdtr.base = &gdt;
 
