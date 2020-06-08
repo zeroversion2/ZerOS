@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 struct gdt_entry {
     unsigned short limit_low;
     unsigned short base_low;
@@ -13,7 +15,7 @@ struct gdt_ptr {
 }__attribute__((packed));
 
 struct gdt_entry gdt[3];
-struct gdt_ptr gp;
+struct gdt_ptr gdtr;
 
 extern void gdt_flush();
 
@@ -30,8 +32,8 @@ void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned cha
 }
 
 void gdt_install() {
-    gp.limit = (sizeof(struct gdt_entry) * 3) - 1;
-    gp.base = &gdt;
+    gdtr.limit = (sizeof(struct gdt_entry) * 3) - 1;
+    gdtr.base = &gdt;
 
     gdt_set_gate(0, 0, 0, 0, 0);
 

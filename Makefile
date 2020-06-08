@@ -13,8 +13,10 @@ HOSTARCH:=i386
 COMPILER_PREFIX:=$(HOME)/opt/cross/bin/$(HOST)
 
 AR:=$(COMPILER_PREFIX)-ar
-AS:=$(COMPILER_PREFIX)-as
-CC:=$(COMPILER_PREFIX)-gcc
+AS:=yasm -Worphan-labels -f elf32
+#AS:=$(COMPILER_PREFIX)-gcc
+CC:=clang --target=i686-elf
+#CC:=$(COMPILER_PREFIX)-gcc
 
 CFLAGS?=-O2 -g
 CPPFLAGS?=
@@ -30,7 +32,7 @@ INCLUDEDIR?=$(PREFIX)/include
 CFLAGS+=--sysroot=$(SYSROOT) -isystem=$(INCLUDEDIR) -ffreestanding -Wall -Wextra
 CPPFLAGS+=-D__is_kernel -Iinclude
 LDFLAGS+=
-LIBS+=-nostdlib -lgcc
+LIBS+=-nostdlib
 
 ARCHDIR=arch/$(HOSTARCH)
 
@@ -48,22 +50,14 @@ kernel/v86.o \
 kernel/kernel.o
 			  
 OBJS=\
-$(ARCHDIR)/crti.o \
-$(ARCHDIR)/crtbegin.o \
 $(FREEOBJS) \
 $(KERNEL_OBJS) \
-$(ARCHDIR)/crtend.o \
-$(ARCHDIR)/crtn.o
 	   
 LINK_LIST=\
 $(LDFLAGS) \
-$(ARCHDIR)/crti.o \
-$(ARCHDIR)/crtbegin.o \
 $(KERNEL_OBJS) \
 $(FREEOBJS) \
 $(LIBS) \
-$(ARCHDIR)/crtend.o \
-$(ARCHDIR)/crtn.o
 
 .PHONY: all clean install install-headers install-kernel
 .SUFFIXES: .o .c .S
@@ -71,23 +65,24 @@ $(ARCHDIR)/crtn.o
 all: install-headers ZerOS.kernel
 
 ZerOS.kernel: $(OBJS) $(ARCHDIR)/linker.ld
-	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(LINK_LIST)
+	$(CC) -T $(ARCHDIR)/linker_higher.ld -o $@ $(CFLAGS) $(LINK_LIST)
 	grub-file --is-x86-multiboot ZerOS.kernel
 
-$(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
-	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
+# $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
+# 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
 
 .c.o:
-	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
+	$(CC) -MD -MF $@.cmd -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
 
 .S.o:
-	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
+	$(AS) $< -o $@
 
 clean:
 	rm -f ZerOS.kernel
 	rm -f $(OBJS) *.o */*.o */*/*.o
 	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
-	rm -f $(OBJS:.o=.o.cmd) *.cmd */*.cmd */*/*.cmd
+	rm -f $(OBJS:.o=.cmd) *.cmd */*.cmd */*/*.cmd
+	rm -f $(OBJS:.o=.o.l) *.l */*.l */*/*.l
 
 install: install-headers install-kernel
 
@@ -100,4 +95,4 @@ install-kernel: ZerOS.kernel
 	mkdir -p $(DESTDIR)$(BOOTDIR)
 	cp ZerOS.kernel $(DESTDIR)$(BOOTDIR)
 
--include $(OBJS:.o=.d)
+-include $(OBJS:.o=.cmd)

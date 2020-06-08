@@ -1,138 +1,79 @@
-#include <kernel/asm.h>
+[BITS 32]
+MAGIC equ 0x1BADB002
+FLAGS equ 11b
+CHECKSUM equ -(MAGIC + FLAGS)
 
-//multiboot header constants
-.set ALIGN,     1<<0
-.set MEMINFO,   1<<1
-//.set 
-.set FLAGS,     ALIGN | MEMINFO
-.set MAGIC,     0x1BADB002
-.set CHECKSUM,  -(MAGIC + FLAGS)
-//.set gdtr, 0
+PAGE_OFFSET equ 0xC0000000
+PAGE_NUMBER equ (PAGE_OFFSET >> 22)
 
-//multiboot header
-.section .multiboot
-.align 4
-.long MAGIC
-.long FLAGS
-.long CHECKSUM
+boot_page_directory_p equ boot_page_directory - PAGE_OFFSET
+boot_page_table_p equ boot_page_table - PAGE_OFFSET
+boot_page_table_pf equ boot_page_table - PAGE_OFFSET
 
-//.section .text
-//.long gdtr
+extern kernel_main
+extern _kernel_start
+extern _kernel_end
 
-//setup stack
-.section .bootstrap_stack, "aw", @nobits
+section .data
+align 0x1000
+boot_page_directory:
+    dd 0x00000083
+    times (PAGE_NUMBER - 1) dd 0
+    dd 0x00000083
+    times (1024 - PAGE_NUMBER - 1) dd 0
+boot_page_table:
+    resb 4096
+
+section .bss alloc write nobits
+align 4
 stack_bottom:
-.skip 16384
+    resb 16384
 stack_top:
 
-.section .bss, "aw", @nobits
-    .align 4096
-boot_page_directory:
-    .skip 4096
-boot_page_table1:
-    .skip 4096
-
-//entry point
-.section .text
-
-.global gdt_flush
-.extern gp
-gdt_flush:
-    lgdt (gp)
-    movw $0x10,%ax
-    movw %ax,%ds
-    movw %ax,%es
-    movw %ax,%fs
-    movw %ax,%gs
-    movw %ax,%ss
-    ret
-
-
-.global _start
-.type _start, @function
+;entry point
+section .text
+align 4
+multiboot:
+dd MAGIC
+dd FLAGS
+dd CHECKSUM
+global _start
 _start:
 
-    //physical address of boot_page_table1
-    movl $(boot_page_table1 - PAGE_OFFSET), %edi
-    //map address 0
-    movl $0, %esi
-    movl $1023, %ecx
+    ;//set cr3 as address of boot_page_directory
+    mov ecx, boot_page_directory_p
+    mov cr3, ecx
 
-1:
-    //only map the kernel
-    cmpl $(_kernel_start - PAGE_OFFSET), %esi
-    jl 2f
-    cmpl $(_kernel_end - PAGE_OFFSET), %esi
-    jge 3f
-
-    //map physical address "present, writable"
-    //maps .text and .rodata writable as well
-    movl %esi, %edx
-    orl $0x003, %edx
-    movl %edx, (%edi)
-
-2:
-    //size of page
-    addl $4096, %esi
-    //size of entries in boot_page_table1 is 4 bytes
-    addl $4, %edi
-    loop 1b
-
-3:
-    //map vga video memory to 0xC03FF000 as "present, writable"
-    movl $(0x000B8000 | 0x003), boot_page_table1 - PAGE_OFFSET + 1023 * 4
-
-    //map the page table to 0x00000000 and 0xC0000000
-    movl $(boot_page_table1 - PAGE_OFFSET + 0x003), boot_page_directory - PAGE_OFFSET + 0
-    movl $(boot_page_table1 - PAGE_OFFSET + 0x003), boot_page_directory - PAGE_OFFSET + 768 * 4
-
-    //set cr3 as address of boot_page_directory
-    movl $(boot_page_directory - PAGE_OFFSET), %ecx
-    movl %ecx, %cr3
+    mov ecx, cr4
+    or ecx, 0x10
+    mov cr4, ecx
     
-    //enable paging and the write-protect bit
-    movl %cr0, %ecx
-    orl $0x80010000, %ecx
-    movl %ecx, %cr0
+    ;hlt
+    ;//enable paging and the write-protect bit
+    mov ecx, cr0
+    or ecx, 0x80010000
+    mov cr0, ecx
+    ;hlt
 
-    //jump to higher half
-    lea 4f, %ecx
-    jmp *%ecx
+    ;//jump to higher half
+    lea ecx, [higher_half]
+    jmp ecx
 
-4:
-    //unmap identity mapping
-    movl $0, boot_page_directory + 0
+higher_half:
+    ;//unmap identity mapping
+    mov dword [boot_page_directory], 0
+    invlpg [0]
+    ;hlt
 
-    //reload cr0 to force a TLB flush and changes take effect
-    movl %cr3, %ecx
-    movl %ecx, %cr3
+    ;//set up stack
+    mov esp, stack_top
+    ;hlt
 
-    //set up stack
-    mov $stack_top, %esp
-
-    //hlt
-
-    //gdt??????
-    // movl 4(%esp), %eax
-    // addl $0xc0101000, %eax
-    // movl %eax, gdt+2
-    // movl 8(%esp), %eax
-    // movw %ax, gdt
-    // lgdtw gdt
-
-    // hlt
-
-    // movw $0x10, %ax
-    // movw %ax, %ds
-    // movw %ax, %es
-    // movw %ax, %fs
-    // movw %ax, %gs
-    // movw %ax, %ss
-    
     call kernel_main
 
     cli
-1:  hlt
-    jmp 1b
-
-.size _start, . - _start
+    q:
+    hlt
+    jmp q
+_end:
+size _start _end-_start

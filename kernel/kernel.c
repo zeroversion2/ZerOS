@@ -18,7 +18,7 @@ void outportb (unsigned short _port, unsigned char _data) {
 
 void kernel_main(void) {
     gdt_install();
-
     terminal_initialize();
-    printf("helo");
+    printf("heloellohellohelloyesyesyesyesyesyesmhmhmhmhmhmhmhhmhmindeedindeedindeedyesyesyes");
+    
 }
