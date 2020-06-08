@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #ifndef KERNEL_INCLUDE_PAGING
 #define KERNEL_INCLUDE_PAGING
 

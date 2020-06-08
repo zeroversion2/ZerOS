@@ -46,7 +46,6 @@ LIBS+=$(KERNEL_ARCH_LIBS)
  
 KERNEL_OBJS=\
 $(KERNEL_ARCH_OBJS) \
-kernel/v86.o \
 kernel/kernel.o
 			  
 OBJS=\
@@ -64,14 +63,14 @@ $(LIBS) \
 all: install-headers ZerOS.kernel
 
 ZerOS.kernel: $(OBJS) $(ARCHDIR)/linker.ld
-	$(CC) -T $(ARCHDIR)/linker_higher.ld -o $@ $(CFLAGS) $(LDFLAGS) $(LINK_LIST)
+	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(LDFLAGS) $(LINK_LIST)
 	grub-file --is-x86-multiboot ZerOS.kernel
 
 # $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
 # 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
 
 .c.o:
-	$(CC) -MD -MF $@.cmd -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
+	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
 
 .S.o:
 	$(AS) $< -o $@
@@ -80,7 +79,6 @@ clean:
 	rm -f ZerOS.kernel
 	rm -f $(OBJS) *.o */*.o */*/*.o
 	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
-	rm -f $(OBJS:.o=.cmd) *.cmd */*.cmd */*/*.cmd
 	rm -f $(OBJS:.o=.o.l) *.l */*.l */*/*.l
 
 install: install-headers install-kernel
@@ -94,4 +92,4 @@ install-kernel: ZerOS.kernel
 	mkdir -p $(DESTDIR)$(BOOTDIR)
 	cp ZerOS.kernel $(DESTDIR)$(BOOTDIR)
 
--include $(OBJS:.o=.cmd)
+-include $(OBJS:.o=.d)

@@ -4,19 +4,19 @@ SECTIONS {
     . = 0x100000;
 
     _kernel_start = .;
-    .text : {
+    .text ALIGN(4K) : {
         *(.text)
     }
 
-    .rodata : {
+    .rodata ALIGN(4K) : {
         *(.rodata)
     }
 
-    .data : {
+    .data ALIGN(4K) : {
         *(.data)
     }
 
-    .bss : {
+    .bss ALIGN(4K) : {
         *(COMMON)
         *(.bss)
     }

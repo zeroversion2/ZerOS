@@ -11,3 +11,5 @@ $(ARCHDIR)/gdt_flush.o \
 $(ARCHDIR)/paging.o \
 $(ARCHDIR)/ports.o \
 $(ARCHDIR)/setup.o \
+$(ARCHDIR)/v86.o \
+$(ARCHDIR)/debug.o

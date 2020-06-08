@@ -2,6 +2,7 @@
 
 uint8_t inportb(uint16_t _port) {
     uint8_t rv;
+    asm(".intel_syntax noprefix");
     asm volatile("inb %1, %0" : "=a" (rv) : "dN" (_port));
     return rv;
 }

@@ -1,8 +1,10 @@
 #include <limits.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <kernel/asm.h>
 
 static bool print(const char* data, size_t length) {
     const unsigned char* bytes = (const unsigned char*) data;
@@ -59,6 +61,35 @@ int printf(const char* restrict format, ...) {
             }
             if (!print(str, len))
                 return -1;
+            written += len;
+        } else if (*format == 'd') {
+            format++;
+            int num = va_arg(parameters, int);
+            int temp = num;
+            size_t len = 0;
+
+            //loop to find length
+            do {
+                len++;
+                temp /= 10;
+            } while (temp > 0);
+            char str[len];
+            temp = num;
+
+            //loop to convert to string
+            for (size_t i = 0; i < len; i++) {
+                char c = (char) ((temp % 10) + '0');
+                str[len - i - 1] = c;
+                temp /= 10;
+            }
+            
+            if (maxrem < len) {
+                //TODO: set errno to EOVERFLOW
+                return -1;
+            }
+            if (!print(str, len)) {
+                return -1;
+            }
             written += len;
         } else {
             format = format_begun_at;
