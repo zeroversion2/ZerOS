@@ -1,3 +1,3 @@
 #!/bin/sh
-qemu-system-i386 -kernel ZerOS.kernel -monitor stdio
+qemu-system-i386 -accel kvm -cdrom ZerOS.iso -nographic
 printf "\n"

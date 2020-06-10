@@ -1,18 +1,13 @@
 [BITS 32]
-MAGIC equ 0x1BADB002
-FLAGS equ 11b
-CHECKSUM equ -(MAGIC + FLAGS)
+extern kernel_main
+extern _kernel_start
+extern _kernel_end
 
 PAGE_OFFSET equ 0xC0000000
 PAGE_NUMBER equ (PAGE_OFFSET >> 22)
 
 page_directory_p equ page_directory - PAGE_OFFSET
 page_table1_p equ page_table1 - PAGE_OFFSET
-
-extern kernel_main
-extern _kernel_start
-extern _kernel_end
-extern setup_paging
 
 section .data
 align 0x1000
@@ -29,6 +24,18 @@ stack_bottom:
     resb 16384
 stack_top:
 
+P_ALIGN equ 1 << 0
+MEMINFO equ 1 << 1
+GRAPHICS equ 1 << 2
+MAGIC equ 0x1BADB002
+FLAGS equ MEMINFO | P_ALIGN | GRAPHICS
+CHECKSUM equ -(MAGIC + FLAGS)
+
+GFX_MODE equ 1
+GFX_WIDTH equ 640
+GFX_HEIGHT equ 480
+GFX_DEPTH equ 0
+
 ;entry point
 section .text
 align 4
@@ -36,26 +43,28 @@ multiboot:
 dd MAGIC
 dd FLAGS
 dd CHECKSUM
+times 5 dd 0
+dd GFX_MODE
+dd GFX_WIDTH
+dd GFX_HEIGHT
+dd GFX_DEPTH
 global _start
 _start:
 
     ;add entries to page table
-    xor edx, edx
-    mov eax, _kernel_end - PAGE_OFFSET
-    mov ebx, 4096
-    div ebx
-    mov ecx, eax
-    mul ebx
+    mov esi, _kernel_end - PAGE_OFFSET
+    shr esi, 12
+    inc esi
+    mov ecx, esi
+    inc ecx
     fill_table:
-    mov eax, ecx
-    mul ebx
-    or eax, 0x3
-    mov dword [page_table1_p + ecx * 4], eax
-    loop fill_table
-    mov eax, ecx
-    mul ebx
-    or eax, 0x3
-    mov dword [page_table1_p + ecx * 4], eax
+    dec ecx
+    mov esi, ecx
+    shl esi, 12
+    or esi, 0x3
+    mov dword [page_table1_p + ecx * 4], esi
+    cmp ecx, 0
+    jge fill_table
     mov eax, dword [page_table1_p]
 
     ;move page table to directory
@@ -84,6 +93,9 @@ higher_half:
 
     ;set up stack
     mov esp, stack_top
+
+    ;mov eax, 
+    ;hlt
 
     call kernel_main
 
