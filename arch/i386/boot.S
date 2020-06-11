@@ -1,5 +1,5 @@
 [BITS 32]
-extern kernel_main
+extern setup_i386
 extern _kernel_start
 extern _kernel_end
 
@@ -13,10 +13,10 @@ section .data
 align 0x1000
 global page_directory
 page_directory:
-    resb 4096
+    times 1024 dd 0
 global page_table1
 page_table1:
-    resb 4096
+    times 1024 dd 10b
 
 section .bss alloc write nobits
 align 4
@@ -31,10 +31,10 @@ MAGIC equ 0x1BADB002
 FLAGS equ MEMINFO | P_ALIGN | GRAPHICS
 CHECKSUM equ -(MAGIC + FLAGS)
 
-GFX_MODE equ 1
+GFX_MODE equ 0
 GFX_WIDTH equ 640
 GFX_HEIGHT equ 480
-GFX_DEPTH equ 0
+GFX_DEPTH equ 16
 
 ;entry point
 section .text
@@ -50,6 +50,9 @@ dd GFX_HEIGHT
 dd GFX_DEPTH
 global _start
 _start:
+    ;hlt
+    ; add ebx, PAGE_OFFSET
+    ; mov [bootinfo_addr], ebx
 
     ;add entries to page table
     mov esi, _kernel_end - PAGE_OFFSET
@@ -94,14 +97,9 @@ higher_half:
     ;set up stack
     mov esp, stack_top
 
-    ;mov eax, 
-    ;hlt
+    push ebx
+    call setup_i386
 
-    call kernel_main
-
-    cli
-    q:
     hlt
-    jmp q
 _end:
 size _start _end-_start

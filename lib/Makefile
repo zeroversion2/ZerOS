@@ -2,6 +2,7 @@ FREEOBJS=\
 lib/stdio/printf.o \
 lib/stdio/putchar.o \
 lib/stdio/getchar.o \
+lib/stdio/gets.o \
 lib/stdio/puts.o \
 lib/stdlib/abort.o \
 lib/string/memcmp.o \

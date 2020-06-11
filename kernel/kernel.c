@@ -7,8 +7,6 @@
 #include <kernel/serial.h>
 
 void kernel_main(void) {
-    setup_i386();
-    printf("ls%d\n", '\n');
-    char c = getchar();
-    printf("%c", c);
+    //gets(test);
+    //printf(test);
 }

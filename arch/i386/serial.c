@@ -9,7 +9,6 @@ char read_serial() {
     while (serial_received() == 0);
     char c = inb(PORT);
     if (c == 13) c = 10;
-    write_serial(c);
         
     return c;
 }

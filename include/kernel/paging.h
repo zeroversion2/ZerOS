@@ -5,6 +5,7 @@
 
 enum page_size_t {K,M};
 enum page_priviledge_t {SV,U};
+uint32_t page_offset;
 
 uint32_t page_directory_entry(
     void* page_table_address,
@@ -17,7 +18,7 @@ uint32_t page_directory_entry(
 );
 
 uint32_t page_table_entry(
-    void* page_address,
+    uint32_t page_address,
     bool cache_disabled,
     bool write_through,
     enum page_priviledge_t page_priviledge,

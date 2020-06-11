@@ -14,4 +14,5 @@ $(ARCHDIR)/setup.o \
 $(ARCHDIR)/v86.o \
 $(ARCHDIR)/debug.o \
 $(ARCHDIR)/paging_asm.o \
-$(ARCHDIR)/serial.o
+$(ARCHDIR)/serial.o \
+$(ARCHDIR)/vga.o

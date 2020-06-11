@@ -91,6 +91,38 @@ int printf(const char* restrict format, ...) {
                 return -1;
             }
             written += len;
+        } else if (*format == 'x') {
+            //TODO: clean up
+            format++;
+            uint32_t num = 0;
+            num = va_arg(parameters, uint32_t);
+            uint32_t temp = num;
+            size_t len = 0;
+
+            //loop to find length
+            do {
+                len++;
+                temp /= 16;
+            } while (temp > 0);
+            char str[len];
+            temp = num;
+
+            //loop to convert to string
+            for (size_t i = 0; i < len; i++) {
+                char c = (char) ((temp % 16) + '0');
+                if (c > '9') c = c - 10 - '0' + 'A'; 
+                str[len - i - 1] = c;
+                temp /= 16;
+            }
+            
+            if (maxrem < len) {
+                //TODO: set errno to EOVERFLOW
+                return -1;
+            }
+            if (!print(str, len)) {
+                return -1;
+            }
+            written += len;
         } else {
             format = format_begun_at;
             size_t len = strlen(format);

@@ -6,11 +6,13 @@
 #include <kernel/paging.h>
 #include <kernel/asm.h>
 
-extern uint32_t* page_directory;
+extern uint32_t page_directory[1024];
 extern uint32_t* page_table1;
 
 //uint32_t page_directory[1024]__attribute__((aligned(4096)));
-//uint32_t page_table[1024]__attribute__((aligned(4096)));
+uint32_t page_table2[1024]__attribute__((aligned(4096)));
+
+uint32_t page_offset = 0xC0000000;
 
 struct page_directory_entry_s {
     uint16_t page_table_address_upper;
@@ -42,7 +44,7 @@ uint32_t page_directory_entry(
 }
 
 uint32_t page_table_entry(
-    void* page_address,
+    uint32_t page_address,
     bool cache_disabled,
     bool write_through,
     enum page_priviledge_t page_priviledge,
@@ -61,63 +63,16 @@ uint32_t page_table_entry(
 void set_page_directory(void*);
 
 void setup_paging() {
-    uint32_t page_directory_pa = (uint32_t)page_directory - 0xC0000000;
-    uint32_t page_table_pa = (uint32_t)page_table1 - 0xC0000000;
-
-    //halt();
-
-    // asm volatile("  movl %cr0, %ecx;\
-    //                 andl $0x80000001, %ecx;\
-    //                 movl %ecx, %cr0");
-
-    //halt();
-
-    // for(int i = 0; i < 1024; i++)
-    // {
-    //     page_directory[i] = page_directory_entry(NULL, K, false, false, SV, true, false);
-    // }
-
-    // halt();
-
-    size_t size = 0x10000;
+    size_t size = 0x400000;
+    uint32_t offset = 0xFD000000;
     for (size_t i = 0; i < size / 4096; i++)
     {
-        page_table1[i] = page_table_entry((void*) (i * 4096), false, false, SV, true, true);
-        //printf("%d\n", page_table);
+        page_table2[i] = page_table_entry(i * 4096 + offset, false, false, SV, true, true);
     }
+    // printf("%h\n", page_directory[768]);
+    // printf("%h\n", ((uint32_t)page_table2 - 0xC0000000));
     //halt();
     //page_directory[0] = page_directory_entry((void*)page_table_pa, K, false, false, SV, true, true);
-    page_directory[768] = page_directory_entry((void*)page_table_pa, K, false, false, SV, true, true);
-
-    
-    //halt();
-
-    //halt();
-
-    // asm volatile("  movl %0, %%ecx;\
-    //                 movl %%ecx, %%cr3;"
-    //                 : 
-    //                 : "r" (page_directory_pa)
-    //                 : "ecx");
-
-    halt();
-
-    // set_page_directory((void*)page_directory_pa);
-
-    //asm volatile("mov $64, %ebx");
-    //halt();
-    //write_eax(69);
-    //asm volatile("higherhalf:");
-    //write_eax(420);
-    //halt();
-
-    // asm volatile("  movl %cr0, %ecx;\
-    //                 andl $0x80000000, %ecx;\
-    //                 movl %ecx, %cr0");
-
-    // halt();
-
-    //printf("helo\ntest");
-
-    
+    page_directory[1012] = page_directory_entry((void*)((uint32_t)page_table2 - 0xC0000000), K, false, false, SV, true, true);
+    page_directory[1023] = 0;    
 }
