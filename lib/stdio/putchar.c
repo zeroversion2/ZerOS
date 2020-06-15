@@ -5,7 +5,7 @@
 
 int putchar(int ic) {
     char c = (char) ic;
-    //terminal_write(&c, sizeof(c));
-    write_serial(c);
+    terminal_write(&c, sizeof(c));
+    //write_serial(c);
     return ic;
 }

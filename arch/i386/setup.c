@@ -10,7 +10,7 @@ void setup_i386(void* bootinfo) {
     setup_paging();
     setup_gdt();
     terminal_initialize();
-    setup_vga(multiboot_info);
+    //setup_vga(multiboot_info);
     
     printf("%x\n", multiboot_info->framebuffer_addr);
     printf("%x\n", multiboot_info->vbe_control_info);
