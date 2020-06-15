@@ -6,29 +6,41 @@
 #include <stdint.h>
 #include <stdio.h>
 
-char* vgamem;
+uint16_t* vgamem;
+uint32_t VGA_WIDTH;
+uint32_t VGA_HEIGHT;
 
-void fillrect(unsigned char *vram, unsigned char r, unsigned char g, unsigned   char b, unsigned char w, unsigned char h) {
-    unsigned char *where = vram;
+void fillrect(uint16_t *vram, uint8_t r, uint8_t g, uint8_t b, uint8_t w, uint8_t h) {
+    //unsigned char *where = vram;
     int i, j;
  
     for (i = 0; i < w; i++) {
         for (j = 0; j < h; j++) {
-            //putpixel(vram, 64 + j, 64 + i, (r << 16) + (g << 8) + b);
-            where[j*4] = r;
-            where[j*4 + 1] = g;
-            where[j*4 + 2] = b;
+            int index = i * VGA_WIDTH + j;
+            uint16_t pixel_value = (r << 11) + (g << 5) + (b << 0);
+            vram[index] = pixel_value;
         }
-        where+=3200;
     }
 }
 
 void setup_vga(struct bootinfo_t* multiboot_info) {
-    struct vbe_control_info_t* vbe_control_info = multiboot_info->vbe_control_info + page_offset;
-    vgamem = (char*) multiboot_info->framebuffer_addr;
-    fillrect(vgamem, 0, 255, 255, 200, 200);
+    VGA_WIDTH = multiboot_info->framebuffer_width;
+    VGA_HEIGHT = multiboot_info->framebuffer_height;
+    struct vbe_control_info_t* vbe_control_info = (void*) multiboot_info->vbe_control_info + page_offset;
+    vgamem = (uint16_t*) multiboot_info->framebuffer_addr;
+    fillrect(vgamem, 0b11111, 0b111111, 0b11100, 200, 200);
+    fillrect(vgamem, 0b11111, 0b111111, 0b11111, 100, 200);
+    //vgamem[0] = 0b0000000011111111;
+
     printf("%x\n", sizeof(struct vbe_control_info_t));
     printf("%s\n", vbe_control_info->vbe_signature);
     printf("%x\n", vbe_control_info->oem_string_ptr);
-    printf("%c\n", 0x56);
+    printf("%d\n", multiboot_info->framebuffer_type);
+    printf("%d\n", multiboot_info->framebuffer_pitch);
+    printf("%d\n", multiboot_info->framebuffer_red_field_position);
+    printf("%d\n", multiboot_info->framebuffer_red_mask_size);
+    printf("%d\n", multiboot_info->framebuffer_green_field_position);
+    printf("%d\n", multiboot_info->framebuffer_green_mask_size);
+    printf("%d\n", multiboot_info->framebuffer_blue_field_position);
+    printf("%d\n", multiboot_info->framebuffer_blue_mask_size);
 }

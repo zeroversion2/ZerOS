@@ -14,9 +14,7 @@ COMPILER_PREFIX:=$(HOME)/opt/cross/bin/$(HOST)
 
 AR:=$(COMPILER_PREFIX)-ar
 AS:=yasm -Worphan-labels -f elf32
-#AS:=$(COMPILER_PREFIX)-gcc
 CC:=clang --target=i686-elf
-#CC:=$(COMPILER_PREFIX)-gcc
 
 CFLAGS?=-O2 -g
 CPPFLAGS?=
@@ -57,20 +55,20 @@ $(KERNEL_OBJS) \
 $(FREEOBJS) \
 $(LIBS) \
 
-.PHONY: all clean install install-headers install-kernel
+.PHONY: all clean install-headers install-kernel
 .SUFFIXES: .o .c .S
 
 all: ZerOS.iso
 
-ZerOS.iso: ZerOS.kernel install
-	./iso.sh
+ZerOS.iso: ZerOS.kernel install-kernel
+	mkdir -p isodir/boot/grub
+	cp sysroot/boot/ZerOS.kernel isodir/boot/ZerOS.kernel
+	cp ./grub.cfg isodir/boot/grub/grub.cfg
+	grub-mkrescue -o ZerOS.iso isodir
 
-ZerOS.kernel: $(OBJS) $(ARCHDIR)/linker.ld
+ZerOS.kernel: install-headers $(OBJS) $(ARCHDIR)/linker.ld
 	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(LDFLAGS) $(LINK_LIST)
 	grub-file --is-x86-multiboot ZerOS.kernel
-
-# $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
-# 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
 
 .c.o:
 	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
@@ -80,11 +78,11 @@ ZerOS.kernel: $(OBJS) $(ARCHDIR)/linker.ld
 
 clean:
 	rm -f ZerOS.kernel
+	rm -rf sysroot
+	rm -rf isodir
 	rm -f $(OBJS) *.o */*.o */*/*.o
 	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
 	rm -f $(OBJS:.o=.o.l) *.l */*.l */*/*.l
-
-install: install-headers install-kernel
 
 install-headers:
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)

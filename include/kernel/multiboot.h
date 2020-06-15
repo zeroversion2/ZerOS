@@ -44,6 +44,8 @@ struct bootinfo_t {
     uint8_t framebuffer_bpp;
     uint8_t framebuffer_type;
 
+    uint16_t pad;
+
     uint8_t framebuffer_red_field_position;
     uint8_t framebuffer_red_mask_size;
     uint8_t framebuffer_green_field_position;
