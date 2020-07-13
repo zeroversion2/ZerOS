@@ -28,10 +28,10 @@ P_ALIGN equ 1 << 0
 MEMINFO equ 1 << 1
 GRAPHICS equ 1 << 2
 MAGIC equ 0x1BADB002
-FLAGS equ MEMINFO | P_ALIGN | GRAPHICS
+FLAGS equ MEMINFO | P_ALIGN; | GRAPHICS
 CHECKSUM equ -(MAGIC + FLAGS)
 
-GFX_MODE equ 1
+GFX_MODE equ 0
 GFX_WIDTH equ 640
 GFX_HEIGHT equ 480
 GFX_DEPTH equ 16
@@ -43,11 +43,11 @@ multiboot:
 dd MAGIC
 dd FLAGS
 dd CHECKSUM
-times 5 dd 0
-dd GFX_MODE
-dd GFX_WIDTH
-dd GFX_HEIGHT
-dd GFX_DEPTH
+;times 5 dd 0
+;dd GFX_MODE
+;dd GFX_WIDTH
+;dd GFX_HEIGHT
+;dd GFX_DEPTH
 global _start
 _start:
     ;hlt

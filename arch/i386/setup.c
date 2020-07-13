@@ -8,9 +8,12 @@ void setup_i386(void* bootinfo) {
     struct bootinfo_t* multiboot_info = bootinfo + page_offset;
     setup_serial();
     setup_paging();
-    setup_gdt();
     terminal_initialize();
+    setup_gdt();
+    setup_idt();
+    setup_isrs();
     //setup_vga(multiboot_info);
+    printf("%d\n", 1/0);
     
     printf("%x\n", multiboot_info->framebuffer_addr);
     printf("%x\n", multiboot_info->vbe_control_info);

@@ -41,7 +41,7 @@ void terminal_initialize(void) {
         }
     }
     update_cursor(1, 1);
-    halt();
+    //halt();
 }
 
 void terminal_setcolor(enum vga_color fg, enum vga_color bg) {
