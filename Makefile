@@ -28,7 +28,7 @@ BOOTDIR?=$(EXEC_PREFIX)/boot
 INCLUDEDIR?=$(PREFIX)/include
 
 CFLAGS+=--sysroot=$(SYSROOT) -isystem=$(INCLUDEDIR) -ffreestanding -Wall -Wextra
-CPPFLAGS+=-D__is_kernel -Iinclude
+CPPFLAGS+=-D__is_kernel -Iinclude -Ilib/include
 LDFLAGS+=
 LIBS+=-nostdlib
 
