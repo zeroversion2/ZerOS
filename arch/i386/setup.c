@@ -2,6 +2,8 @@
 #include <kernel/tty.h>
 #include <kernel/paging.h>
 #include <kernel/multiboot.h>
+#include <kernel/serial.h>
+
 #include <stdio.h>
 
 void setup_i386(void* bootinfo) {

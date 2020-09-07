@@ -5,6 +5,7 @@
 
 #define STDIO 0
 
+void setup_paging();
 void setup_gdt();
 void setup_idt();
 void setup_isrs();
