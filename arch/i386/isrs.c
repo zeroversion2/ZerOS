@@ -6,7 +6,7 @@ extern void isr0();
 void setup_isrs() {
     idt_set_gate(0, (unsigned)isr0, 0x08, 0x8E);
     //isr0();
-    asm("intw 0");
+    //asm("intw 0");
 }
 
 unsigned char *exception_messages[] = {

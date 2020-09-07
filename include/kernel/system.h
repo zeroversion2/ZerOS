@@ -3,7 +3,7 @@
 #ifndef _KERNEL_SYSTEM_H
 #define _KERNEL_SYSTEM_H
 
-#define STDIO 1
+#define STDIO 0
 
 void setup_gdt();
 void setup_idt();
